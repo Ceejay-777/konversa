@@ -10,7 +10,7 @@ SECRET_KEY = 'django-insecure-llxh-rsoz==+@ie*=lq+!nqsf$=#fuwgr6ta^ln1mx)eg!y#kb
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["konversa-kpyx.onrender.com"]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
