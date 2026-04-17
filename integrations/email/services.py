@@ -23,7 +23,7 @@ class BrevoEmailService:
         return template.render(**context)
 
     def send(self, subject: str, body: str, recipient: str, is_html=False):
-        sender_email="konversaai@gmail.com"
+        sender_email="covenantcrackslord03@gmail.com"
         sender_name="Konversa"
         
         content_field = "html_content" if is_html else "text_content"

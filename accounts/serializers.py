@@ -66,7 +66,7 @@ class WaitlistSerializer(serializers.ModelSerializer):
         read_only_fields = ["sqid", "created_at"]
    
     def validate_phone_number(self, value):
-        if User.objects.filter(phone_number=value).exists():
+        if WaitList.objects.filter(phone_number=value).exists():
             raise serializers.ValidationError("A user with this phone number already exists.")
         
         return value 

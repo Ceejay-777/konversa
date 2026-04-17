@@ -1,11 +1,25 @@
-/venv
-
-/__pycache__/
-*.pyc
-*.pyo
-
-# Ignore .env files
+# Virtual environment
+venv/
 .env
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# SQLite DB (if using)
+db.sqlite3
+
+# Django stuff
+*.log
+media/
+staticfiles/
+
+# VSCode / IDE
+.vscode/
+.idea/
+
+.postman
+postman/
 
 /test_service.py
 /test_mail.py

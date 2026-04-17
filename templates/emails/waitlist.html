@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div style='font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 16px; letter-spacing: -0.025em;'>You're on the list!</div>
+<p style='margin-bottom: 20px;'>Hi <strong>{{ full_name }}</strong>,</p>
+<p style='margin-bottom: 24px;'>Thanks for your interest in <strong>Konversa</strong>. We've successfully added <strong>{{ business_name | default("your business") }}</strong> to our early access waitlist.</p>
+
+<div style='background-color: #f8fafc; border-left: 4px solid #0f172a; padding: 20px; margin-bottom: 24px;'>
+<p style='margin: 0; font-size: 15px; color: #334155;'>
+We're building the future of conversational commerce, and we can't wait to show you what we're working on. We'll notify you as soon as a spot opens up.
+</p>
+</div>
+
+<p style='margin-bottom: 32px;'>In the meantime, feel free to follow our journey for updates and sneak peeks at what's coming next.</p>
+
+<div style='border-top: 1px solid #e2e8f0; padding-top: 20px; font-size: 14px; color: #64748b;'>
+Cheers,
+
+
+<strong>The Konversa Team</strong>
+</div>
+{% endblock %}

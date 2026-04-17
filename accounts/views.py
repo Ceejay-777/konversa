@@ -96,3 +96,22 @@ class LoginView(TokenObtainPairView, PublicGenericAPIView):
 class JoinWaitlistView(generics.CreateAPIView, PublicGenericAPIView):
     serializer_class = WaitlistSerializer
     
+    @transaction.atomic()
+    def perform_create(self, serializer):
+        email = serializer.validated_data.get('email')
+        business_name = serializer.validated_data.get('business_name')
+        full_name = serializer.validated_data.get('full_name')
+        
+        super().perform_create(serializer)
+        
+        if email:
+            mailer.send_html(
+                subject="You're on the list!",
+                template_path="emails/waitlist.html",
+                recipient=email,
+                context={"business_name": business_name, "full_name": full_name}
+            )
+            
+    
+
+    
