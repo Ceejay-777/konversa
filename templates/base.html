@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Konversa Mail</title>
+  </head>
+  <body
+    style="
+      font-family: &quot;Segoe UI&quot;, Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+    "
+  >
+    <div
+      style="
+        max-width: 600px;
+        margin: 20px auto;
+        background-color: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      "
+    >
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 15px;
+          background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+          padding: 40px;
+          text-align: center;
+        "
+      >
+        <!-- <img
+          src="{{ base_url }}/static/images/docuhealth_logo-CrvpM8Fp.png"
+          alt="Konversa Logo"
+          style="
+            background-color: white;
+            padding: 5px;
+            border-radius: 4px;
+            width: 50px;
+            height: auto;
+          "
+        /> -->
+        <!-- <a
+          href="https://docuhealthservices.net"
+          target="_blank"
+          style="
+            font-size: 26px;
+            font-weight: 800;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            color: #ffffff;
+          "
+          > -->
+          <span style="color: #14B8A6">Konversa</span>
+          <!-- </a> -->
+      </div>
+
+      <div style="padding: 40px; line-height: 1.6; color: #334155">
+        {% block content %}{% endblock %}
+      </div>
+
+      <div
+        style="
+          background-color: #f8fafc;
+          padding: 30px;
+          text-align: center;
+          font-size: 12px;
+          color: #94a3b8;
+          border-top: 1px solid #f1f5f9;
+        "
+      >
+        <p>&copy; 2026 Konversa AI. All rights reserved.</p>
+      </div>
+    </div>
+  </body>
+</html>

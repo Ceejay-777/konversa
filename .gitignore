@@ -1,0 +1,12 @@
+/venv
+
+/__pycache__/
+*.pyc
+*.pyo
+
+# Ignore .env files
+.env
+
+/test_service.py
+/test_mail.py
+/preview.html
