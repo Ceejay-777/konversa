@@ -1,7 +1,7 @@
 from django.db import models
 from stores.models import Store, TelegramChannelConnection
 from konversa.models import BaseModel
-
+from konversa.utils import upload_product_image_to
 
 class Product(BaseModel):
     store = models.ForeignKey(
@@ -13,7 +13,7 @@ class Product(BaseModel):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     price = models.DecimalField(max_digits=12, decimal_places=2)
-    image_url = models.URLField(blank=True, null=True)
+    image = models.ImageField(upload_to=upload_product_image_to, blank=True, null=True)
     stock = models.PositiveIntegerField(default=0)
 
     updated_at = models.DateTimeField(auto_now=True)

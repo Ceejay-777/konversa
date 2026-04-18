@@ -5,11 +5,18 @@ from stores.models import Store, TelegramChannelConnection
 
 class ProductCreateSerializer(serializers.ModelSerializer):
     store = serializers.SlugRelatedField(slug_field='sqid', queryset=Store.objects.all())
+    image = serializers.ImageField(required=False, allow_null=True, write_only=True)
+    image_url = serializers.SerializerMethodField(read_only=True)
     
     class Meta:
         model = Product
-        fields = ["sqid", "store", "title", "description", "price", "image_url", "stock", "created_at"]
-        read_only_fields = ["sqid", "created_at"]
+        fields = ["sqid", "store", "title", "description", "price", "image_url", "image", "stock", "created_at"]
+        read_only_fields = ["sqid", "created_at", "image_url"]
+        
+    def get_image_url(self, obj):
+        if obj.image:
+            return obj.image.url
+        return None
         
 class ProductPublishSerializer(serializers.Serializer):
     channel = serializers.SlugRelatedField(slug_field='sqid', queryset=TelegramChannelConnection.objects.all(), required=True)

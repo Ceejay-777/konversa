@@ -3,6 +3,7 @@ from django.db import transaction
 from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from drf_spectacular.utils import extend_schema
 
@@ -14,6 +15,7 @@ from integrations.telegram.services import TelegramPublishingService
 class ProductCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProductCreateSerializer
+    parser_classes = [MultiPartParser, FormParser]
 
 @extend_schema(tags=["Products"], summary="Publish a product to a Telegram channel")
 class ProductPublishView(generics.GenericAPIView):
