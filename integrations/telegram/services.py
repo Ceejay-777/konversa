@@ -44,7 +44,7 @@ class TelegramPublishingService:
             f"Send a DM to order!"
         )
         
-    def publish_product(self, channel_id: str, product) -> Tuple[bool, Optional[str], Optional[int]]:
+    def publish_product(self, channel_id: str, product) -> Tuple[bool, Optional[str], Optional[int]]: # TODO: If image is optional, we should allow publishing without image (send message)
         """
         Sends the product image + caption to the specific channel.
         Returns: (success_bool, error_message, telegram_message_id)
@@ -54,7 +54,7 @@ class TelegramPublishingService:
         try:
             message = self.client.send_photo(
                 chat_id=channel_id,
-                photo_url=product.image_url,
+                photo_url=product.image.url if product.image else None,
                 caption=caption
             )
             
