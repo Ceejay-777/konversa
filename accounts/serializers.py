@@ -16,7 +16,7 @@ class SignupSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
          validated_data['is_verified'] = False
         
-         user = super().create(validated_data)
+         user = User.objects.create_user(**validated_data)
          return user
      
 class VerifyOTPSerializer(serializers.Serializer):

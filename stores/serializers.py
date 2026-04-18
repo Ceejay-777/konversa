@@ -21,8 +21,13 @@ class TelegramConnectSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         validated_data = super().validate(attrs)
         store = validated_data.get("store")
+        channel_username = validated_data.get("channel_username")
         
         if store.owner != self.context['request'].user:
             raise serializers.ValidationError({"store": "You do not have permission to connect this store."})
+        
+        if not channel_username.startswith("@"):
+            channel_username = "@" + channel_username
+            validated_data['channel_username'] = channel_username
         
         return validated_data

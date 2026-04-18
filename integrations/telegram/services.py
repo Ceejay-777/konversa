@@ -31,7 +31,6 @@ class TelegramConnectionService:
         except TelegramAPIError as e:
             return False, str(e), None
 
-
 class TelegramPublishingService:
     def __init__(self):
         self.client = TelegramClient()
@@ -41,7 +40,8 @@ class TelegramPublishingService:
             f"🛍 {product.title}\n\n"
             f"{product.description}\n\n"
             f"💰 Price: ₦{product.price}\n"
-            f"📦 *Stock:* {'In Stock' if product.stock > 0 else 'Out of Stock'}"
+            f"📦 *Stock:* {'In Stock' if product.stock > 0 else 'Out of Stock'}\n\n"
+            f"Send a DM to order!"
         )
         
     def publish_product(self, channel_id: str, product) -> Tuple[bool, Optional[str], Optional[int]]:
