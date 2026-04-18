@@ -71,6 +71,7 @@ class TelegramClient:
             data={
                 "chat_id": chat_id,
                 "photo": photo_url,
-                "caption": caption
+                "caption": caption,
+                "parse_mode": None
             }
         )

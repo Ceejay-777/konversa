@@ -40,7 +40,7 @@ class TelegramPublishingService:
             f"🛍 {product.title}\n\n"
             f"{product.description}\n\n"
             f"💰 Price: ₦{product.price}\n"
-            f"📦 *Stock:* {'In Stock' if product.stock > 0 else 'Out of Stock'}\n\n"
+            f"📦 Stock: {'In Stock' if product.stock > 0 else 'Out of Stock'}\n\n"
             f"Send a DM to order!"
         )
         
@@ -54,12 +54,13 @@ class TelegramPublishingService:
         try:
             message = self.client.send_photo(
                 chat_id=channel_id,
-                photo=product.image_url,
-                caption=caption,
-                parse_mode="Markdown"
+                photo_url=product.image_url,
+                caption=caption
             )
             
-            return True, None, message.message_id
+            print("Telegram API response for send_photo:", message)
+            
+            return True, None, message.get("message_id")
         
         except TelegramAPIError as e:
             return False, str(e), None

@@ -2,13 +2,6 @@ from rest_framework import serializers
 
 from stores.models import Store, TelegramChannelConnection
 
-class StoreSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-        model = Store
-        fields = ['sqid', 'name', 'created_at']
-        read_only_fields = ['sqid', 'created_at']
-        
 class TelegramConnectSerializer(serializers.ModelSerializer):
     store = serializers.SlugRelatedField(slug_field='sqid', queryset=Store.objects.all())
     channel_username = serializers.CharField(help_text="The username of the channel")
@@ -31,3 +24,13 @@ class TelegramConnectSerializer(serializers.ModelSerializer):
             validated_data['channel_username'] = channel_username
         
         return validated_data
+
+class StoreSerializer(serializers.ModelSerializer):
+    telegram_channels = TelegramConnectSerializer(many=True, read_only=True, source='telegram_channel_connections')
+    
+    class Meta:
+        model = Store
+        fields = ['sqid', 'name', 'created_at', 'telegram_channels']
+        read_only_fields = ['sqid', 'created_at', 'telegram_channels']
+        
+

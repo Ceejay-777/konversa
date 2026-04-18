@@ -39,6 +39,6 @@ class ProductPublishView(generics.GenericAPIView):
             error_message=error
         )
         
-        return Response({"status": "success" if success else "error", "error": error}, status=status.HTTP_200_OK)
+        return Response({"status": "success" if success else "error", "error": error, "detail": "Product published successfully"}, status=status.HTTP_200_OK)
         
         

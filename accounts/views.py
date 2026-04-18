@@ -2,7 +2,7 @@ from django.db import transaction
 
 from rest_framework import status, generics
 from rest_framework.response import Response
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from drf_spectacular.utils import extend_schema
 
@@ -90,6 +90,25 @@ class LoginView(TokenObtainPairView, PublicGenericAPIView):
         if response.status_code == status.HTTP_200_OK:
             set_refresh_cookie(response)
                 
+        return response
+    
+@extend_schema(tags=['Auth'], summary="Refresh access token")
+class CustomTokenRefreshView(TokenRefreshView):
+    serializer_class = None
+    
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.COOKIES.get("refresh_token")
+        print("Refresh token from cookie:", refresh_token)
+        
+        if not refresh_token:
+            return Response({"detail": "Session timeout, please login again"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        request.data["refresh"] = refresh_token
+        response = super().post(request, *args, **kwargs)
+        
+        if response.status_code == status.HTTP_200_OK:
+            set_refresh_cookie(response)
+        
         return response
 
 @extend_schema(tags=["Auth"], summary="Join the waitlist")   

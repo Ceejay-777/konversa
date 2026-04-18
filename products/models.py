@@ -1,5 +1,5 @@
 from django.db import models
-from stores.models import Store
+from stores.models import Store, TelegramChannelConnection
 from konversa.models import BaseModel
 
 
@@ -23,7 +23,7 @@ class Product(BaseModel):
     
 class ProductPublishLog(BaseModel):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="publish_logs")
-    channel_connection = models.ForeignKey("integrations.telegram.models.TelegramChannelConnection", on_delete=models.CASCADE, related_name="product_publish_logs"),
+    channel_connection = models.ForeignKey(TelegramChannelConnection, on_delete=models.CASCADE, related_name="product_publish_logs")
     post_id = models.CharField(max_length=255)
     status = models.CharField(max_length=50, default="success")  # success, failed
     error_message = models.TextField(blank=True, null=True)

@@ -1,3 +1,4 @@
+from datetime import timedelta
 from pathlib import Path
 import os
 from dotenv import load_dotenv
@@ -6,7 +7,7 @@ from urllib.parse import urlparse, parse_qsl
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = 'django-insecure-llxh-rsoz==+@ie*=lq+!nqsf$=#fuwgr6ta^ln1mx)eg!y#kb'
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 DEBUG = True
 
@@ -137,4 +138,15 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Konversa API Documentation',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": True,            
+    "BLACKLIST_AFTER_ROTATION": True,        
+    "UPDATE_LAST_LOGIN": True,
+    "SIGNING_KEY": os.environ.get("DJANGO_SECRET_KEY"),
+    "ALGORITHM": "HS256",
+    "TOKEN_BLACKLIST_ENABLED": True,
 }

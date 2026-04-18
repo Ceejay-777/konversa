@@ -51,4 +51,10 @@ class ConnectTelegramView(generics.CreateAPIView):
             "channel_id": connection.channel_id
         }, status=status.HTTP_201_CREATED)
 
-        
+@extend_schema(tags=["Stores"], summary="List all stores for the user")
+class ListStoresView(generics.ListAPIView):
+    serializer_class = StoreSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return self.request.user.stores.all()
