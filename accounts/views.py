@@ -86,10 +86,15 @@ class LoginView(TokenObtainPairView, PublicGenericAPIView):
     
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
+        email = request.data.get("email").lower()
         
         if response.status_code == status.HTTP_200_OK:
             set_refresh_cookie(response)
-                
+            
+            user = User.objects.filter(email=email).first()
+            has_store = user.stores.exists()
+            response.data["data"]["has_store"] = has_store
+            
         return response
     
 @extend_schema(tags=['Auth'], summary="Refresh access token")
