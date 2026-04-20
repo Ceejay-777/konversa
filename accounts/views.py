@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.http import JsonResponse
 
 from rest_framework import status, generics
 from rest_framework.response import Response
@@ -31,6 +32,9 @@ def set_refresh_cookie(response):
     response.data = {"data": {"access_token": access}, "detail": "Access granted", "status": "success"}
             
     return response
+
+def health(request):
+    return JsonResponse({"status": "ok"})
 
 @extend_schema(tags=["Auth"], summary="User signup")
 class SignupView(generics.CreateAPIView, PublicGenericAPIView):
