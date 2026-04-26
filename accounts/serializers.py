@@ -69,4 +69,10 @@ class WaitlistSerializer(serializers.ModelSerializer):
         if WaitList.objects.filter(phone_number=value).exists():
             raise serializers.ValidationError("A user with this phone number already exists.")
         
-        return value 
+        return value
+    
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["sqid", "email", "username", "is_verified", "created_at"]
+        read_only_fields = ["sqid", "email", "is_verified", "created_at"] 

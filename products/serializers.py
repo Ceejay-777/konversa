@@ -39,6 +39,6 @@ class ProductPublishSerializer(serializers.Serializer):
             raise serializers.ValidationError({"channel": "The selected channel does not belong to this user."})
         
         if not channel.is_active:
-            raise serializers.ValidationError({"channel": "The selected channel is not active."})
+            raise serializers.ValidationError({"channel": "The selected channel has been disconnected."})
         
         return validated_data

@@ -4,13 +4,14 @@ from django.http import JsonResponse
 from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework.permissions import IsAuthenticated
 
 from drf_spectacular.utils import extend_schema
 
 from konversa.mixins import PublicGenericAPIView
 from integrations.email.services import BrevoEmailService
 
-from .serializers import SignupSerializer, VerifyOTPSerializer, CustomTokenObtainPairSerializer, WaitlistSerializer
+from .serializers import SignupSerializer, UserProfileSerializer, VerifyOTPSerializer, CustomTokenObtainPairSerializer, WaitlistSerializer
 from .models import User, OTP
 
 mailer = BrevoEmailService()
@@ -140,6 +141,10 @@ class JoinWaitlistView(generics.CreateAPIView, PublicGenericAPIView):
                 context={"business_name": business_name, "full_name": full_name}
             )
             
+@extend_schema(tags=["Auth"], summary="Get user profile")
+class UserProfileView(generics.RetrieveAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
     
-
-    
+    def get_object(self):
+        return self.request.user
