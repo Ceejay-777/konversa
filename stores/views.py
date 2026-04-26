@@ -90,19 +90,18 @@ class ConnectTelegramView(generics.CreateAPIView):
             description="Store sqid to disconnect the Telegram channel from"
         )
     ])
-class DisconnectTelegramView(generics.DestroyAPIView):
+class DisconnectTelegramView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
-    # queryset = Store.objects.all().select_related("owner").prefetch_related("telegram_channel_connections")
     
-    def delete(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         store = request.query_params.get("store")
         if not store:
             raise ValidationError({"store": "This query parameter is required."})
 
         connection = TelegramChannelConnection.objects.filter(
-            store_sqid=store,
+            store__sqid=store,
             is_active=True
-        ).first()
+        ).select_related("store").first()
 
         if not connection:
             return Response({"telegram": "No active telegram connection found"}, status=404)
