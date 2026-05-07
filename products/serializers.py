@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Product
 
-from stores.models import Store, TelegramChannelConnection
+from stores.models import Store, Connection
 
 class ProductCreateSerializer(serializers.ModelSerializer):
     store = serializers.SlugRelatedField(slug_field='sqid', queryset=Store.objects.all())
@@ -19,26 +19,27 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         return None
         
 class ProductPublishSerializer(serializers.Serializer):
-    channel = serializers.SlugRelatedField(slug_field='sqid', queryset=TelegramChannelConnection.objects.all(), required=True)
+    connection = serializers.SlugRelatedField(slug_field='sqid', queryset=Connection.objects.all(), required=True)
     product = serializers.SlugRelatedField(slug_field='sqid', queryset=Product.objects.all(), required=True)
     
     def validate(self, attrs):
         validated_data = super().validate(attrs)
         product = validated_data.get("product")
-        channel = validated_data.get("channel")
+        connection = validated_data.get("connection")
         
-        store = channel.store
+        store = connection.store
+        user = self.context['request'].user
         
-        if store.owner != self.context['request'].user:
-            raise serializers.ValidationError({"store": "You do not have permission to publish this product."})
+        if store.owner != user:
+            raise serializers.ValidationError({"detail": "You do not have permission to publish this product."})
         
-        if product.store.owner != self.context['request'].user:
-            raise serializers.ValidationError({"product": "You do not have permission to publish this product."})
+        if product.store.owner != user:
+            raise serializers.ValidationError({"detail": "You do not have permission to publish this product."})
         
-        if channel.store != store:
-            raise serializers.ValidationError({"channel": "The selected channel does not belong to this user."})
+        if connection.store != store:
+            raise serializers.ValidationError({"detail": "The selected channel does not belong to this user."})
         
-        if not channel.is_active:
-            raise serializers.ValidationError({"channel": "The selected channel has been disconnected."})
+        if not connection.is_active:
+            raise serializers.ValidationError({"detail": "The selected channel has been disconnected."})
         
         return validated_data

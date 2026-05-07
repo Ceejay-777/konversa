@@ -10,7 +10,7 @@ class BaseModel(models.Model):
     sqid = SqidsField(real_field_name="id", min_length=7, alphabet="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890", db_index=True)
     
     is_deleted = models.BooleanField(default=False)
-    deleted_at = models.DateTimeField(null=True, blank=True)
+    deleted_at = models.DateTimeField(null=True, blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = ActiveManager()
