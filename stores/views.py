@@ -39,9 +39,7 @@ class CreateConnectionView(generics.CreateAPIView):
     
     def create(self, request, *args, **kwargs):
         platform = request.query_params.get("platform")
-        print(platform)
-        platforms = dict(Connection.PlatformType.choices)
-        print(platforms)
+        
         if platform not in dict(Connection.PlatformType.choices):
             return Response({"details": "Invalid platform type"}, status=status.HTTP_400_BAD_REQUEST)
         

@@ -12,7 +12,6 @@ class TelegramClient:
 
     def __init__(self):
         self.base_url = f"{self.BASE_URL}{settings.TELEGRAM_BOT_TOKEN}"
-        print(self.base_url)
 
     def _request(self, method: str, http_method="GET", **kwargs):
         url = f"{self.base_url}/{method}"
@@ -33,7 +32,7 @@ class TelegramClient:
         if response.status_code != 200:
             print(response.text)
             raise TelegramRequestError(
-                f"Telegram API returned status {response.status_code}"
+                f"Telegram API returned status {response.status_code}", response.status_code
             )
 
         data = response.json()

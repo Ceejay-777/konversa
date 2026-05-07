@@ -5,7 +5,7 @@ from stores.models import Store, Connection
 class ConnectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Connection
-        fields = ['sqid', 'store', 'account_id', 'created_at']
+        fields = ['sqid', 'store', 'account_id', 'created_at', 'is_active']
         read_only_fields = ['sqid', 'created_at', 'account_id']
 
 class CreateTelegramConnectionSerializer(serializers.Serializer):
@@ -27,12 +27,12 @@ class CreateTelegramConnectionSerializer(serializers.Serializer):
         return validated_data
 
 class StoreSerializer(serializers.ModelSerializer):
-    telegram_channels = ConnectionSerializer(many=True, read_only=True, source='telegram_channel_connections')
+    connections = ConnectionSerializer(many=True, read_only=True)
     
     class Meta:
         model = Store
-        fields = ['sqid', 'name', 'created_at', 'telegram_channels']
-        read_only_fields = ['sqid', 'created_at', 'telegram_channels']
+        fields = ['sqid', 'name', 'created_at', 'connections']
+        read_only_fields = ['sqid', 'created_at', 'connections']
         
 class DeactivateConnectionSerializer(serializers.Serializer):
     store = serializers.SlugRelatedField(slug_field='sqid', queryset=Store.objects.all(), required=True)

@@ -24,12 +24,18 @@ class Connection(BaseModel):
 
     is_active = models.BooleanField(default=True)
     
+    def __str__(self):
+        return f"{self.platform} Connection for Store {self.store.name}"
+    
 class TelegramConnectionDetails(models.Model):
     connection = models.OneToOneField(Connection, on_delete=models.CASCADE, related_name="telegram")
 
     channel_id = models.BigIntegerField()
     channel_name = models.CharField(max_length=255, blank=True, null=True)
     channel_username = models.CharField(max_length=255, null=True, blank=True)
+    
+    def __str__(self):
+        return f"Telegram Connection for Channel {self.channel_id} (Store: {self.connection.store.name})"
     
     
 

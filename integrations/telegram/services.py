@@ -11,6 +11,7 @@ from stores.models import Connection, TelegramConnectionDetails
 class TelegramConnectionService:
     def __init__(self):
         self.client = TelegramClient()
+        self.bot_id = settings.TELEGRAM_BOT_TOKEN
 
     def validate_and_get_metadata(self, channel_username: str):
         try:
@@ -19,8 +20,7 @@ class TelegramConnectionService:
             if chat["type"] != "channel":
                 return False, "Not a Telegram channel", None
 
-            bot = self.client.get_me()
-            member = self.client.get_chat_member(chat["id"], bot["id"])
+            member = self.client.get_chat_member(chat["id"], self.bot_id)
 
             if member["status"] != "administrator":
                 return False, "Bot must be an admin in the channel", None
@@ -34,7 +34,7 @@ class TelegramConnectionService:
         except TelegramAPIError as e:
             return False, str(e), None
     
-    def connect(self, metadata, validated_data):
+    def connect(self, validated_data):
         channel_username = validated_data['channel_username']
         store = validated_data['store']
         
@@ -43,7 +43,7 @@ class TelegramConnectionService:
         if not success:
             return False, error, None
         
-        active_exists = Connection.objects.filter(store=store, account_id=metadata['channel_id']).exists()
+        active_exists = Connection.objects.filter(store=store, account_id=metadata['channel_id'], platform=Connection.PlatformType.TELEGRAM).exists()
         if active_exists:
             return False, "This channel is already connected to this store. If it is not active, please reconnect it.", None
         
