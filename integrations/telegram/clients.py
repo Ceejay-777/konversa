@@ -6,7 +6,6 @@ from .exceptions import (
     TelegramResponseError,
 )
 
-
 class TelegramClient:
     BASE_URL = "https://api.telegram.org/bot"
 
@@ -20,9 +19,9 @@ class TelegramClient:
 
         try:
             if http_method == "GET":
-                response = requests.get(url, timeout=10, **kwargs)
+                response = requests.get(url, timeout=15, **kwargs)
             else:
-                response = requests.post(url, timeout=10, **kwargs)
+                response = requests.post(url, timeout=15, **kwargs)
 
         except requests.RequestException as e:
             print(f"Error occurred while making request: {e}")

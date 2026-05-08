@@ -13,6 +13,7 @@ from integrations.email.services import BrevoEmailService
 
 from .serializers import SignupSerializer, UserProfileSerializer, VerifyOTPSerializer, CustomTokenObtainPairSerializer, WaitlistSerializer
 from .models import User, OTP
+from .tasks import send_signup_otp_email
 
 mailer = BrevoEmailService()
 
@@ -59,12 +60,14 @@ class SignupView(generics.CreateAPIView, PublicGenericAPIView):
         user = serializer.save()
         otp = OTP.generate_otp(user)
         
-        mailer.send_html(
-            subject="Verify your email",
-            template_path="emails/otp_email.html",
-            recipient=user.email,
-            context={"otp": otp}
-        )
+        send_signup_otp_email.delay(user.email, otp.otp)
+        
+        # mailer.send_html(
+        #     subject="Verify your email",
+        #     template_path="emails/otp_email.html",
+        #     recipient=user.email,
+        #     context={"otp": otp}
+        # )
 
 @extend_schema(tags=["Auth"], summary="Verify OTP for email confirmation")   
 class VerifySignupOTPView(PublicGenericAPIView):  

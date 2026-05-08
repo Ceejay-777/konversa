@@ -1,6 +1,7 @@
 from datetime import timedelta
 from pathlib import Path
 import os
+import ssl
 from dotenv import load_dotenv
 from urllib.parse import urlparse, parse_qsl
 
@@ -8,8 +9,9 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+DEVELOPMENT = os.getenv("DEVELOPMENT")
 
-DEBUG = True
+DEBUG = DEVELOPMENT
 
 ALLOWED_HOSTS = ["konversa-kpyx.onrender.com", "127.0.0.1"]
 
@@ -165,7 +167,6 @@ SIMPLE_JWT = {
     "TOKEN_BLACKLIST_ENABLED": True,
 }
 
-# Cloudinary settings
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.getenv("CLOUDINARY_CLOUD_NAME"),
     'API_KEY': os.getenv("CLOUDINARY_API_KEY"),
@@ -185,3 +186,17 @@ STORAGES = {
 }
 
 TELEGRAM_BOT_ID = os.environ.get("TELEGRAM_BOT_ID")
+
+CELERY_BROKER_URL = os.environ.get("REDIS_URL")
+CELERY_RESULT_BACKEND = os.environ.get("REDIS_URL")
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+
+if not DEVELOPMENT:
+    CELERY_BROKER_USE_SSL = {
+        "ssl_cert_reqs": ssl.CERT_NONE
+    }
+
+    CELERY_REDIS_BACKEND_USE_SSL = {
+        "ssl_cert_reqs": ssl.CERT_NONE
+    }
