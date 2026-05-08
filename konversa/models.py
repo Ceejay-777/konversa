@@ -23,3 +23,9 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True 
+
+class Status(models.TextChoices):
+    PENDING = 'pending', 'Pending'
+    PROCESSING = 'processing', 'Processing'
+    SUCCESS = 'success', 'Success'
+    FAILED = 'failed', 'Failed'

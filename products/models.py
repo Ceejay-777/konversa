@@ -1,6 +1,7 @@
 from django.db import models
+
 from stores.models import Store, Connection
-from konversa.models import BaseModel
+from konversa.models import BaseModel, Status
 from konversa.utils import upload_product_image_to
 
 class Product(BaseModel):
@@ -24,6 +25,6 @@ class Product(BaseModel):
 class ProductPublishLog(BaseModel):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="publish_logs")
     connection = models.ForeignKey(Connection, on_delete=models.CASCADE, related_name="product_publish_logs")
-    post_id = models.CharField(max_length=255)
-    status = models.CharField(max_length=50, default="success")  # success, failed
-    error_message = models.TextField(blank=True, null=True)
+    post_id = models.CharField(max_length=255, null=True, default=None)
+    status = models.CharField(max_length=50, default=Status.PENDING, choices=Status.choices) 
+    error_message = models.TextField(blank=True, null=True, default=None)

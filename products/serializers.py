@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product
+from .models import Product, ProductPublishLog
 
 from stores.models import Store, Connection
 
@@ -43,3 +43,11 @@ class ProductPublishSerializer(serializers.Serializer):
             raise serializers.ValidationError({"detail": "The selected channel has been disconnected."})
         
         return validated_data
+    
+class ProductPublishLogSerializer(serializers.ModelSerializer):
+    connection = serializers.SlugRelatedField(slug_field='sqid', queryset=Connection.objects.all())
+    product = serializers.SlugRelatedField(slug_field='sqid', queryset=Product.objects.all())
+    
+    class Meta:
+        model = ProductPublishLog
+        fields = ["sqid", "product", "connection", "status", "post_id", "error_message", "created_at"]

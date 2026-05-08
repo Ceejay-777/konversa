@@ -10,9 +10,9 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from .models import Product, ProductPublishLog
 from .filters import ProductFilter
-from .serializers import ProductCreateSerializer, ProductPublishSerializer
+from .serializers import ProductCreateSerializer, ProductPublishSerializer, ProductPublishLogSerializer
 from .schemas import ProductViewsetSchema
-from .services import publish_product
+from .tasks import publish_product_task
 
 from konversa.mixins import BaseViewSet
 
@@ -47,6 +47,7 @@ class ProductPublishView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProductPublishSerializer
     
+    @transaction.atomic()
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -54,11 +55,21 @@ class ProductPublishView(generics.GenericAPIView):
         connection = serializer.validated_data['connection']
         product = serializer.validated_data['product']
         
-        success, error = publish_product(connection, product)
+        log = ProductPublishLog.objects.create(
+            product=product,
+            connection=connection,
+            status="pending",
+        )
         
-        if not success:
-            return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
+        publish_product_task.delay_on_commit(connection.id, product.id, log.id)
         
-        return Response({"detail": "Product published successfully"}, status=status.HTTP_200_OK)
+        return Response({"detail": "Publishing product...", "log_id": log.sqid}, status=status.HTTP_200_OK)
+    
+@extend_schema(tags=["Products"], summary="Get product publish log. Use for polling")
+class RetrieveProductPublishLogView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProductPublishLogSerializer
+    queryset = ProductPublishLog.objects.all()
+    lookup_field = "sqid"
     
         

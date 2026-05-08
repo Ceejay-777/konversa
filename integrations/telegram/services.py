@@ -85,6 +85,7 @@ class TelegramPublishingService:
         caption = self.format_product_message(product)
         
         try:
+            print("Image url: ", product.image.url if product.image else None)
             message = self.client.send_photo(
                 chat_id=channel_id,
                 photo_url=product.image.url if product.image else None,
@@ -97,3 +98,5 @@ class TelegramPublishingService:
         
         except TelegramAPIError as e:
             return False, str(e), None
+        
+    
