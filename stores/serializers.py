@@ -50,4 +50,23 @@ class DeactivateConnectionSerializer(serializers.Serializer):
             raise serializers.ValidationError({"detail": "This connection does not belong to this store."})
         
         return validated_data
-
+    
+class ReactivateConnectionSerializer(serializers.Serializer):
+    store = serializers.SlugRelatedField(slug_field='sqid', queryset=Store.objects.all(), required=True)
+    connection = serializers.SlugRelatedField(slug_field='sqid', queryset=Connection.objects.all(), required=True)
+    
+    def validate(self, attrs):
+        validated_data = super().validate(attrs)
+        store = validated_data.get("store")
+        connection = validated_data.get("connection")
+        
+        if store.owner != self.context['request'].user:
+            raise serializers.ValidationError({"detail": "You do not have permission to disconnect this connection."})
+        
+        if connection.store != store:
+            raise serializers.ValidationError({"detail": "This connection does not belong to this store."})
+        
+        if connection.is_active:
+            raise serializers.ValidationError({"detail": "This connection is already active."})
+        
+        return validated_data

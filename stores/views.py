@@ -7,7 +7,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from konversa.mixins import BaseViewSet
 
 from .models import Store, Connection
-from .serializers import StoreSerializer, DeactivateConnectionSerializer, ConnectionSerializer
+from .serializers import StoreSerializer, DeactivateConnectionSerializer, ConnectionSerializer, ReactivateConnectionSerializer
 from .schema import StoreViewsetSchema, PlatformParam
 from .services import connect_platform, CONNECTION_SERIALIZERS
 
@@ -65,6 +65,22 @@ class DeactivateConnectionView(generics.GenericAPIView):
         connection = serializer.validated_data['connection']
         
         connection.is_active = False
-        connection.save()
+        connection.save(update_fields=["is_active"])
+
+        return Response({"detail": "Platform disconnected successfully"}, status=status.HTTP_200_OK)
+    
+@extend_schema(tags=["Stores"], summary="Reactivate a connection from a store")
+class ReactivateConnectionView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ReactivateConnectionSerializer
+    
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        
+        connection = serializer.validated_data['connection']
+        
+        connection.is_active = True
+        connection.save(update_fields=["is_active"])
 
         return Response({"detail": "Platform disconnected successfully"}, status=status.HTTP_200_OK)
