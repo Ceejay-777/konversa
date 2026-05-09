@@ -22,9 +22,24 @@ class Product(BaseModel):
     def __str__(self):
         return self.title
     
-class ProductPublishLog(BaseModel):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="publish_logs")
-    connection = models.ForeignKey(Connection, on_delete=models.CASCADE, related_name="product_publish_logs")
+class AiCaption(BaseModel):
+    product = models.ForeignKey(Product, on_delete=models.DO_NOTHING, related_name="ai_captions")
+    
+    ai_generated_text = models.TextField(blank=True, null=True)
+    final_text = models.TextField(blank=True, null=True)
+    
+    was_edited = models.BooleanField(default=False)
+    status = models.CharField(max_length=50, default=Status.PENDING, choices=Status.choices)
+    ai_model = models.CharField(max_length=255, blank=True, null=True)
+    
+class Publication(BaseModel):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="publications")
+    connection = models.ForeignKey(Connection, on_delete=models.CASCADE, related_name="publications")
+    
+    ai_caption = models.ForeignKey(AiCaption, on_delete=models.DO_NOTHING, related_name="publications", null=True, default=None)
+    caption = models.TextField(blank=True, null=True)
+    
     post_id = models.CharField(max_length=255, null=True, default=None)
     status = models.CharField(max_length=50, default=Status.PENDING, choices=Status.choices) 
     error_message = models.TextField(blank=True, null=True, default=None)
+    

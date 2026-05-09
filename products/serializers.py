@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, ProductPublishLog
+from .models import Product, Publication, AiCaption
 
 from stores.models import Store, Connection
 
@@ -17,10 +17,23 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         if obj.image:
             return obj.image.url
         return None
+    
+class PublishAiCaptionSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = AiCaption
+        fields = ["was_edited", "final_text"]
         
-class ProductPublishSerializer(serializers.Serializer):
+class ProductPublishSerializer(serializers.ModelSerializer):
     connection = serializers.SlugRelatedField(slug_field='sqid', queryset=Connection.objects.all(), required=True)
     product = serializers.SlugRelatedField(slug_field='sqid', queryset=Product.objects.all(), required=True)
+    ai_caption = PublishAiCaptionSerializer(required=False)
+    caption = serializers.TextField(required=False)
+    
+    class Meta:
+        model = Publication
+        fields = ["product", "connection", "caption", "ai_caption"]
+        read_only_fields = ["created_at"]
     
     def validate(self, attrs):
         validated_data = super().validate(attrs)
@@ -44,10 +57,13 @@ class ProductPublishSerializer(serializers.Serializer):
         
         return validated_data
     
-class ProductPublishLogSerializer(serializers.ModelSerializer):
+class PublicationSerializer(serializers.ModelSerializer):
     connection = serializers.SlugRelatedField(slug_field='sqid', queryset=Connection.objects.all())
     product = serializers.SlugRelatedField(slug_field='sqid', queryset=Product.objects.all())
     
     class Meta:
-        model = ProductPublishLog
+        model = Publication
         fields = ["sqid", "product", "connection", "status", "post_id", "error_message", "created_at"]
+        
+class GenerateAiCaptionSerializer(serializers.Serializer):
+    products = serializers.SlugRelatedField(slug_field='sqid', queryset=Product.objects.all(), required=True, many=True)

@@ -8,15 +8,15 @@ from rest_framework.exceptions import ValidationError
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
-from .models import Product, ProductPublishLog
+from .models import Product, Publication, AICaption
 from .filters import ProductFilter
-from .serializers import ProductCreateSerializer, ProductPublishSerializer, ProductPublishLogSerializer
+from .serializers import ProductCreateSerializer, ProductPublishSerializer, PublicationSerializer, GenerateAiCaptionSerializer
 from .schemas import ProductViewsetSchema
 from .tasks import publish_product_task
 
 from konversa.mixins import BaseViewSet
 
-from integrations.telegram.services import TelegramPublishingService
+from integrations.ai.captioning.services import generate_caption
 
 @extend_schema_view(**ProductViewsetSchema)
 @extend_schema(tags=["Products"])
@@ -55,7 +55,7 @@ class ProductPublishView(generics.GenericAPIView):
         connection = serializer.validated_data['connection']
         product = serializer.validated_data['product']
         
-        log = ProductPublishLog.objects.create(
+        log = Publication.objects.create(
             product=product,
             connection=connection,
             status="pending",
@@ -68,8 +68,31 @@ class ProductPublishView(generics.GenericAPIView):
 @extend_schema(tags=["Products"], summary="Get product publish log. Use for polling")
 class RetrieveProductPublishLogView(generics.RetrieveAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = ProductPublishLogSerializer
-    queryset = ProductPublishLog.objects.all()
+    serializer_class = PublicationSerializer
+    queryset = Publication.objects.all()
     lookup_field = "sqid"
     
         
+class GenerateAiCaptionView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = GenerateAiCaptionSerializer
+    
+    @transaction.atomic()
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        products = serializer.validated_data['products']
+        ai_captions = []
+        
+        for product in products:
+            ai_caption = AICaption.objects.create(
+                product=product,
+                status="processing"
+            )
+            
+            generate_ai_caption_task.delay_on_commit(product.id, ai_caption.id)
+            
+            ai_captions.append(ai_caption.sqid)
+        
+        return Response({ "detail": "Generating AI captions...", "captions": captions}, status=status.HTTP_200_OK)

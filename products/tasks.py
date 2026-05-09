@@ -2,7 +2,10 @@ from celery import shared_task
 
 from integrations.telegram.services import TelegramPublishingService
 from integrations.telegram.exceptions import TelegramAPIError
-from .models import ProductPublishLog, Product
+
+from integrations.ai.captioning.services import generate_caption
+
+from .models import Publication, Product, AICaption
 
 from stores.models import Connection
 
@@ -18,7 +21,7 @@ PUBLISHING_SERVICE = {
 def publish_product_task(connection_id, product_id, log_id):
     connection = Connection.objects.get(id=connection_id)
     product = Product.objects.get(id=product_id)
-    log = ProductPublishLog.objects.get(id=log_id)
+    log = Publication.objects.get(id=log_id)
 
     log.status = "processing"
     log.save(update_fields=["status"])
@@ -65,3 +68,25 @@ def publish_product_task(connection_id, product_id, log_id):
         ])
 
         raise    
+
+@shared_task()
+def generate_ai_caption_task(ai_caption_id):
+    ai_caption = AICaption.objects.get(id=ai_caption_id).select_related("product")
+    product = ai_caption.product
+    
+    try:
+        success, caption, ai_model = generate_caption(product) # TODO: Add seller profile data
+        
+        ai_caption.ai_generated_text = caption
+        ai_caption.ai_model = ai_model
+        ai_caption.status = "success" if success else "failed"
+        
+        ai_caption.save(update_fields=["ai_generated_text", "ai_model", "status"])
+        
+    except Exception as e:
+        # TODO: Log and error and re-raise
+        ai_caption.status = "failed"
+        
+        ai_caption.save(update_fields=["status"])
+        
+        raise

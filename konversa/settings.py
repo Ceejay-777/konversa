@@ -200,3 +200,5 @@ if not DEVELOPMENT:
     CELERY_REDIS_BACKEND_USE_SSL = {
         "ssl_cert_reqs": ssl.CERT_NONE
     }
+    
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
