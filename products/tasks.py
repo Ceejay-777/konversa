@@ -6,28 +6,34 @@ from django_eventstream import send_event
 from integrations.telegram.services import TelegramPublishingService
 from integrations.telegram.exceptions import TelegramAPIError
 from integrations.ai.captioning.services import generate_caption
-from integrations.ai.captioning.exceptions import CaptionBusinessError, CaptionInfrastructureError, CaptionRateLimitError
+from integrations.ai.captioning.exceptions import CaptionBusinessError, CaptionInfrastructureError
 
-from .models import Publication, Product, AiCaption, AiCaptionJob
+from .models import Publication, AiCaption, AiCaptionJob, PublicationJob
 
 from stores.models import Connection
 from konversa.utils import get_job_channel
-from konversa.models import JobStatus, Status
+from konversa.models import Status
 
 PUBLISHING_SERVICE = {
     "telegram": TelegramPublishingService
 }
 
 @shared_task(autoretry_for=(TelegramAPIError,), retry_backoff=True, retry_kwargs={"max_retries": 3})
-def publish_product_task(connection_id, product_id, log_id):
+def publish_product_task(connection_id, publication_id, job_id):
     connection = Connection.objects.get(id=connection_id)
-    product = Product.objects.get(id=product_id)
-    log = Publication.objects.get(id=log_id)
-
-    log.status = "processing"
-    log.save(update_fields=["status"])
-
+    publication = Publication.objects.get(id=publication_id)
+    job = PublicationJob.objects.get(id=job_id)
+    
+    product = publication.product
     platform = connection.platform
+    channel = get_job_channel("publication", job.sqid)
+
+    job.status = Status.PROCESSING
+    job.save(update_fields=["status"])
+    
+    publication.status = Status.PROCESSING
+    publication.save(update_fields=["status"])
+
     service_class = PUBLISHING_SERVICE.get(platform)
 
     if not service_class:
@@ -36,27 +42,26 @@ def publish_product_task(connection_id, product_id, log_id):
     service = service_class()
 
     try:
-        success, error, post_id = service.publish(connection.account_id, product)
+        post_id = service.publish(connection.account_id, product)
 
-        if not success:
-            log.status = "failed"
-            log.error_message = error
-
-            log.save(update_fields=["status", "error_message"])
-
-            raise Exception(error)
-
-        log.status = "success"
-        log.post_id = post_id
-        log.error_message = None
-
-        log.save(update_fields=["status", "post_id", "error_message"])
+        publication.status = Status.SUCCESS
+        publication.post_id = post_id
+        publication.save(update_fields=["status", "post_id"])
+        
+        send_event(channel=channel, event_type="publication.success", data={
+                "type": "publication.success",
+                "timestamp": timezone.now().isoformat(),
+                "job_id": job.sqid,
+                "data": {
+                    "product_id": product.sqid,
+                    "status": publication.status,
+                }})
+        
+        return True
 
     except Exception as e:
-        log.status = "failed"
-        log.error_message = str(e)
-
-        log.save(update_fields=["status", "error_message"])
+        publication.status = Status.FAILED
+        publication.save(update_fields=["status"])
 
         raise    
 
@@ -89,6 +94,7 @@ def generate_ai_caption_task(self, ai_caption_id):
         return True
         
     except CaptionBusinessError as e:
+        # TODO: Add logging
         ai_caption.status = Status.FAILED
         ai_caption.save(update_fields=["status"])
         
@@ -131,11 +137,11 @@ def generate_ai_captions_completed(results, job_id):
     channel = get_job_channel("ai-caption", job.sqid)
     
     if all(results):
-        job.status = JobStatus.SUCCESS
+        job.status = Status.SUCCESS
     elif any(results):
-        job.status = JobStatus.PARTIAL_SUCCESS
+        job.status = Status.PARTIAL_SUCCESS
     else:
-        job.status = JobStatus.FAILED
+        job.status = Status.FAILED
     
     job.save(update_fields=["status"])
     

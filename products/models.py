@@ -37,7 +37,12 @@ class AiCaption(BaseModel):
     status = models.CharField(max_length=50, default=Status.PENDING, choices=Status.choices)
     ai_model = models.CharField(max_length=255, blank=True, null=True)
     
+class PublicationJob(BaseModel):
+    store = models.ForeignKey(Store, on_delete=models.DO_NOTHING, related_name="publication_jobs")
+    status = models.CharField(max_length=50, default=Status.PENDING, choices=Status.choices)
+    
 class Publication(BaseModel):
+    job = models.ForeignKey(PublicationJob, on_delete=models.DO_NOTHING, related_name="publications")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="publications")
     connection = models.ForeignKey(Connection, on_delete=models.CASCADE, related_name="publications")
     
@@ -46,5 +51,3 @@ class Publication(BaseModel):
     
     post_id = models.CharField(max_length=255, null=True, default=None)
     status = models.CharField(max_length=50, default=Status.PENDING, choices=Status.choices) 
-    error_message = models.TextField(blank=True, null=True, default=None)
-    

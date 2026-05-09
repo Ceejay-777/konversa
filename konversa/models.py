@@ -28,11 +28,5 @@ class Status(models.TextChoices):
     PENDING = 'pending', 'Pending'
     PROCESSING = 'processing', 'Processing'
     SUCCESS = 'success', 'Success'
-    FAILED = 'failed', 'Failed'
-    
-class JobStatus(models.TextChoices):
-    PENDING = 'pending', 'Pending'
-    PROCESSING = 'processing', 'Processing'
-    SUCCESS = 'success', 'Success'
     PARTIAL_SUCCESS = 'partial_success', 'Partial Success'
     FAILED = 'failed', 'Failed'

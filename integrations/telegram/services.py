@@ -94,9 +94,9 @@ class TelegramPublishingService:
             
             print("Telegram API response for send_photo:", message)
             
-            return True, None, message.get("message_id")
+            return message.get("message_id")
         
         except TelegramAPIError as e:
-            return False, str(e), None
+            raise
         
     
