@@ -28,7 +28,7 @@ class ProductPublishSerializer(serializers.ModelSerializer):
     connection = serializers.SlugRelatedField(slug_field='sqid', queryset=Connection.objects.all(), required=True)
     product = serializers.SlugRelatedField(slug_field='sqid', queryset=Product.objects.all(), required=True)
     ai_caption = PublishAiCaptionSerializer(required=False)
-    caption = serializers.TextField(required=False)
+    caption = serializers.CharField(required=False)
     
     class Meta:
         model = Publication

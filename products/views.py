@@ -7,14 +7,17 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.exceptions import ValidationError
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from celery import chord
 
-from .models import Product, Publication, AICaption
+from .models import Product, Publication, AiCaption, AiCaptionJob
 from .filters import ProductFilter
 from .serializers import ProductCreateSerializer, ProductPublishSerializer, PublicationSerializer, GenerateAiCaptionSerializer
 from .schemas import ProductViewsetSchema
-from .tasks import publish_product_task
+from .tasks import publish_product_task, generate_ai_caption_task, generate_ai_captions_completed
 
 from konversa.mixins import BaseViewSet
+from konversa.models import Status
+from konversa.utils import get_job_channel
 
 from integrations.ai.captioning.services import generate_caption
 
@@ -55,15 +58,11 @@ class ProductPublishView(generics.GenericAPIView):
         connection = serializer.validated_data['connection']
         product = serializer.validated_data['product']
         
-        log = Publication.objects.create(
-            product=product,
-            connection=connection,
-            status="pending",
-        )
+        publication = serializer.save(status="pending")
         
-        publish_product_task.delay_on_commit(connection.id, product.id, log.id)
+        publish_product_task.delay_on_commit(connection.id, product.id, publication.id)
         
-        return Response({"detail": "Publishing product...", "log_id": log.sqid}, status=status.HTTP_200_OK)
+        return Response({"detail": "Publishing product...", "publication_id": publication.sqid}, status=status.HTTP_200_OK)
     
 @extend_schema(tags=["Products"], summary="Get product publish log. Use for polling")
 class RetrieveProductPublishLogView(generics.RetrieveAPIView):
@@ -71,28 +70,29 @@ class RetrieveProductPublishLogView(generics.RetrieveAPIView):
     serializer_class = PublicationSerializer
     queryset = Publication.objects.all()
     lookup_field = "sqid"
-    
         
 class GenerateAiCaptionView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = GenerateAiCaptionSerializer
     
-    @transaction.atomic()
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
         products = serializer.validated_data['products']
         ai_captions = []
+        tasks = []
         
-        for product in products:
-            ai_caption = AICaption.objects.create(
-                product=product,
-                status="processing"
-            )
+        with transaction.atomic():
+            job = AiCaptionJob.objects.create(store=products[0].store, status=Status.PENDING)
             
-            generate_ai_caption_task.delay_on_commit(product.id, ai_caption.id)
+            for product in products:
+                ai_caption = AiCaption.objects.create(job=job, product=product, status=Status.PENDING)
+                
+                tasks.append(generate_ai_caption_task.s(ai_caption.id))
+                ai_captions.append({"product_id": product.sqid, "ai_caption_id": ai_caption.sqid})
             
-            ai_captions.append(ai_caption.sqid)
+        callback = generate_ai_captions_completed.s(job.id)
+        transaction.on_commit(lambda: chord(tasks)(callback))
         
-        return Response({ "detail": "Generating AI captions...", "captions": captions}, status=status.HTTP_200_OK)
+        return Response({ "detail": "Generating AI captions", "ai_captions": ai_captions, "job_id": job.sqid, "channel": get_job_channel("ai_caption", job.sqid)}, status=status.HTTP_200_OK)

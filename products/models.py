@@ -22,7 +22,12 @@ class Product(BaseModel):
     def __str__(self):
         return self.title
     
+class AiCaptionJob(BaseModel):
+    store = models.ForeignKey(Store, on_delete=models.DO_NOTHING, related_name="ai_caption_jobs")
+    status = models.CharField(max_length=50, default=Status.PENDING, choices=Status.choices)
+    
 class AiCaption(BaseModel):
+    job = models.ForeignKey(AiCaptionJob, on_delete=models.DO_NOTHING, related_name="ai_captions")
     product = models.ForeignKey(Product, on_delete=models.DO_NOTHING, related_name="ai_captions")
     
     ai_generated_text = models.TextField(blank=True, null=True)

@@ -16,6 +16,9 @@ DEBUG = DEVELOPMENT
 ALLOWED_HOSTS = ["konversa-kpyx.onrender.com", "127.0.0.1"]
 
 INSTALLED_APPS = [
+    "daphne",
+    "django_eventstream",
+    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -69,6 +72,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'konversa.wsgi.application'
+ASGI_APPLICATION = "konversa.asgi.application"
 
 tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
 
@@ -189,6 +193,7 @@ TELEGRAM_BOT_ID = os.environ.get("TELEGRAM_BOT_ID")
 
 CELERY_BROKER_URL = os.environ.get("REDIS_URL")
 CELERY_RESULT_BACKEND = os.environ.get("REDIS_URL")
+CELERY_RESULT_EXPIRES = 3600
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 
@@ -202,3 +207,9 @@ if not DEVELOPMENT:
     }
     
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+
+EVENTSTREAM_REDIS = {
+    "host": "localhost",
+    "port": 6379,
+    "db": 0,
+}

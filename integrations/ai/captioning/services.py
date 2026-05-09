@@ -1,10 +1,10 @@
 import requests
 from django.conf import settings
 
-from rest_framework.response import Response
-
 from openrouter.errors import TooManyRequestsResponseError
 from openrouter import OpenRouter
+
+from .exceptions import CaptionBusinessError, CaptionInfrastructureError, CaptionRateLimitError
 
 def build_prompt(product, seller_profile):
     return f"""
@@ -39,15 +39,22 @@ def generate_caption(product, seller_profile=None):
                 model="openrouter/free:gpt-3.5-turbo",
                 messages=[{"role": "user", "content": content}]
             )
+        
+        caption = response.choices[0].message.content
+        
+        if not caption:
+            raise CaptionBusinessError("AI returned empty caption.")
 
-        return True, response.choices[0].message.content, response.model
+        if len(caption.strip()) < 5:
+            raise CaptionBusinessError("Caption too short.")
+        
+        return caption, response.model
     
-    except TooManyRequestsResponseError:
-        return Response(
-            {"detail": "Caption service is busy, please try again in a moment."},
-            status=429
-        )
-    
-    except Exception as e:
-        # Log and return a fallback or re-raise
-        raise RuntimeError(f"Caption generation failed: {str(e)}")
+    except TooManyRequestsResponseError as exc:
+        raise CaptionRateLimitError("OpenRouter rate limit exceeded.") from exc
+
+    except CaptionBusinessError:
+        raise
+
+    except Exception as exc:
+        raise CaptionInfrastructureError(f"Caption generation failed: {str(exc)}") from exc

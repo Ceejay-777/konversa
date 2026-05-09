@@ -7,3 +7,6 @@ def generate_otp():
 def upload_product_image_to(instance, filename):
     ext = filename.split('.')[-1]
     return f'product_images/{instance.store.owner.sqid}/{uuid.uuid4().hex}.{ext}'
+
+def get_job_channel(domain, job_id):
+    return f"{domain}-job-{job_id}"
