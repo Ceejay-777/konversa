@@ -111,7 +111,7 @@ USE_I18N = True
 
 USE_TZ = True
 
-APPEND_SLASH = False
+APPEND_SLASH = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
@@ -209,7 +209,7 @@ if not DEVELOPMENT:
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 EVENTSTREAM_REDIS = {
-    "host": "localhost",
+    "host": "redis",
     "port": 6379,
     "db": 0,
 }

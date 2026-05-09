@@ -65,48 +65,34 @@ def generate_ai_caption_task(self, ai_caption_id):
     ai_caption = AiCaption.objects.select_related("product", "job").get(id=ai_caption_id)
     product = ai_caption.product
     job = ai_caption.job
-    channel = get_job_channel("ai_caption", job.sqid)
+    channel = get_job_channel("ai-caption", job.sqid)
     
     try:
-        success, caption, ai_model = generate_caption(product) # TODO: Add seller profile data
+        caption, ai_model = generate_caption(product) # TODO: Add seller profile data
         
         ai_caption.ai_generated_text = caption
         ai_caption.ai_model = ai_model
-        ai_caption.status = Status.SUCCESS if success else Status.FAILED
+        ai_caption.status = Status.SUCCESS
         ai_caption.save(update_fields=["ai_generated_text", "ai_model", "status"])
         
-        if success:
-            send_event(channel=channel, event="caption.generated", data={
-                    "type": "caption.generated",
-                    "timestamp": timezone.now().isoformat(),
-                    "job_id": job.sqid,
-                    "data": {
-                        "caption_id": ai_caption.sqid,
-                        "product_id": product.sqid,
-                        "status": ai_caption.status,
-                        "generated_text": caption,
-                    }})
-            
-            return True
-        
-        else:
-            send_event(channel=channel, event="caption.failed", data={
-                "type": "caption.failed",
+        send_event(channel=channel, event_type="caption.generated", data={
+                "type": "caption.generated",
                 "timestamp": timezone.now().isoformat(),
                 "job_id": job.sqid,
                 "data": {
                     "caption_id": ai_caption.sqid,
                     "product_id": product.sqid,
-                    "status": "failed",
+                    "status": ai_caption.status,
+                    "generated_text": caption,
                 }})
         
-            return False
+        return True
         
     except CaptionBusinessError as e:
         ai_caption.status = Status.FAILED
         ai_caption.save(update_fields=["status"])
         
-        send_event(channel=channel, event="caption.failed", data={
+        send_event(channel=channel, event_type="caption.failed", data={
                 "type": "caption.failed",
                 "timestamp": timezone.now().isoformat(),
                 "job_id": job.sqid,
@@ -126,7 +112,7 @@ def generate_ai_caption_task(self, ai_caption_id):
             ai_caption.status = Status.FAILED
             ai_caption.save(update_fields=["status"])
 
-            send_event(channel=channel, event="caption.failed", data={
+            send_event(channel=channel, event_type="caption.failed", data={
                 "type": "caption.failed",
                 "timestamp": timezone.now().isoformat(),
                 "job_id": job.sqid,
@@ -142,7 +128,7 @@ def generate_ai_caption_task(self, ai_caption_id):
 def generate_ai_captions_completed(results, job_id):
     job = AiCaptionJob.objects.get(id=job_id)
     
-    channel = get_job_channel("ai_caption", job.sqid)
+    channel = get_job_channel("ai-caption", job.sqid)
     
     if all(results):
         job.status = JobStatus.SUCCESS
@@ -153,7 +139,7 @@ def generate_ai_captions_completed(results, job_id):
     
     job.save(update_fields=["status"])
     
-    send_event(channel=channel, event="caption.job.completed", data={
+    send_event(channel=channel, event_type="caption.job.completed", data={
                 "type": "caption.job.completed",
                 "timestamp": timezone.now().isoformat(),
                 "job_id": job.sqid,

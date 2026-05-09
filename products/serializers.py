@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, Publication, AiCaption
+from .models import Product, Publication, AiCaption, AiCaptionJob
 
 from stores.models import Store, Connection
 
@@ -67,3 +67,15 @@ class PublicationSerializer(serializers.ModelSerializer):
         
 class GenerateAiCaptionSerializer(serializers.Serializer):
     products = serializers.SlugRelatedField(slug_field='sqid', queryset=Product.objects.all(), required=True, many=True)
+    
+class AiCaptionInJobSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = AiCaption
+        fields = ["sqid", "product", "status"]
+    
+class AiCaptionJobSerializer(serializers.ModelSerializer):
+    ai_captions = AiCaptionInJobSerializer(many=True, read_only=True)
+    class Meta:
+        model = AiCaptionJob
+        fields = ["sqid", "status", "ai_captions"]

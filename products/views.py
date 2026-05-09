@@ -11,7 +11,7 @@ from celery import chord
 
 from .models import Product, Publication, AiCaption, AiCaptionJob
 from .filters import ProductFilter
-from .serializers import ProductCreateSerializer, ProductPublishSerializer, PublicationSerializer, GenerateAiCaptionSerializer
+from .serializers import ProductCreateSerializer, ProductPublishSerializer, PublicationSerializer, GenerateAiCaptionSerializer, AiCaptionJobSerializer
 from .schemas import ProductViewsetSchema
 from .tasks import publish_product_task, generate_ai_caption_task, generate_ai_captions_completed
 
@@ -64,13 +64,7 @@ class ProductPublishView(generics.GenericAPIView):
         
         return Response({"detail": "Publishing product...", "publication_id": publication.sqid}, status=status.HTTP_200_OK)
     
-@extend_schema(tags=["Products"], summary="Get product publish log. Use for polling")
-class RetrieveProductPublishLogView(generics.RetrieveAPIView):
-    permission_classes = [IsAuthenticated]
-    serializer_class = PublicationSerializer
-    queryset = Publication.objects.all()
-    lookup_field = "sqid"
-        
+@extend_schema(tags=["Products"], summary="Generate AI captions for a list of products")    
 class GenerateAiCaptionView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = GenerateAiCaptionSerializer
@@ -95,4 +89,10 @@ class GenerateAiCaptionView(generics.GenericAPIView):
         callback = generate_ai_captions_completed.s(job.id)
         transaction.on_commit(lambda: chord(tasks)(callback))
         
-        return Response({ "detail": "Generating AI captions", "ai_captions": ai_captions, "job_id": job.sqid, "channel": get_job_channel("ai_caption", job.sqid)}, status=status.HTTP_200_OK)
+        return Response({ "detail": "Generating AI captions", "ai_captions": ai_captions, "job_id": job.sqid, "channel": get_job_channel("ai-caption", job.sqid)}, status=status.HTTP_200_OK)
+
+  
+class RetrieveAiCaptionJob(generics.RetrieveAPIView):
+    serializer_class = AiCaptionJobSerializer
+    queryset = AiCaptionJob.objects.all()
+    lookup_field = "sqid"
